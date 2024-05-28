@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+
+
+
+<robot name="irb6640" xmlns:xacro="http://ros.org/wiki/xacro">
+
+
+  <xacro:arg name="cell_layout_1" default="false"/>
+  <xacro:property name="cell_layout_1" value="$(arg cell_layout_1)"/>
+  
+
+  <xacro:arg name="EE_no" default="false"/>
+  <xacro:property name="EE_no" value="$(arg EE_no)"/>
+
+
+  <xacro:include filename="$(find irb6640_ros2_gazebo)/urdf/irb6640_macro.urdf.xacro"/>	
+  <xacro:irb6640 
+    prefix=""
+    EE_no="${EE_no}"
+  />
+
+
+  <link name="world"/>
+
+
+  <xacro:if value="${cell_layout_1}">
+    <joint name="world-base_link-fixed" type="fixed">
+      <parent link="world"/>
+      <child link="base_link"/>
+    </joint>
+  </xacro:if>
+
+</robot>
