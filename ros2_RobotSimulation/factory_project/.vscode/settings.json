@@ -1,0 +1,26 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/go/mmf_ws/install/mobile_robot_1/lib/python3.10/site-packages",
+        "/home/go/mmf_ws/install/factory_amr_description/lib/python3.10/site-packages",
+        "/home/go/tayo/install/tayo_test_description/lib/python3.10/site-packages",
+        "/home/go/tayo/install/realsense2_camera_msgs/local/lib/python3.10/dist-packages",
+        "/home/go/amr_ws/build/joy_tester",
+        "/home/go/amr_ws/install/joy_tester/lib/python3.10/site-packages",
+        "/home/go/amr_ws/build/cmd_vel_to_arduino",
+        "/home/go/amr_ws/install/cmd_vel_to_arduino/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/go/mmf_ws/install/mobile_robot_1/lib/python3.10/site-packages",
+        "/home/go/mmf_ws/install/factory_amr_description/lib/python3.10/site-packages",
+        "/home/go/tayo/install/tayo_test_description/lib/python3.10/site-packages",
+        "/home/go/tayo/install/realsense2_camera_msgs/local/lib/python3.10/dist-packages",
+        "/home/go/amr_ws/build/joy_tester",
+        "/home/go/amr_ws/install/joy_tester/lib/python3.10/site-packages",
+        "/home/go/amr_ws/build/cmd_vel_to_arduino",
+        "/home/go/amr_ws/install/cmd_vel_to_arduino/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

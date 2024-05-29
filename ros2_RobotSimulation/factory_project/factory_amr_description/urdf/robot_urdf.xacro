@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<robot name="factory_amr" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="factory_amr.xacro"/>
+
+    <xacro:include filename="gazebo_control.xacro"/>
+
+    <!-- <xacro:include filename="lidar.xacro"/> -->
+
+</robot>
