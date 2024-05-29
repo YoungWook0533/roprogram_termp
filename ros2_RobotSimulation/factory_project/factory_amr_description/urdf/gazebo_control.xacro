@@ -1,7 +1,10 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <gazebo>
+    
         <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
+            <robotNamespace>/$(arg robot_namespace)</robotNamespace>
+            <robotParam>/$(arg robot_namespace)/robot_description</robotParam>
             <left_joint>left_wheel_joint</left_joint>
             <right_joint>right_wheel_joint</right_joint>
             <wheel_separation>0.62</wheel_separation>

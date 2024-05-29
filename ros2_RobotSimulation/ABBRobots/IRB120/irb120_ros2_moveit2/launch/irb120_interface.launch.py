@@ -54,6 +54,7 @@ def load_file(package_name, file_path):
     except EnvironmentError:
         # parent of IOError, OSError *and* WindowsError where available.
         return None
+
 # LOAD YAML:
 def load_yaml(package_name, file_path):
     package_path = get_package_share_directory(package_name)
@@ -67,21 +68,55 @@ def load_yaml(package_name, file_path):
 
 # ========== **GENERATE LAUNCH DESCRIPTION** ========== #
 def generate_launch_description():
+    # *********************** AMR *********************** #
+    amr1_share_dir = get_package_share_directory('factory_amr_description')
+    amr1_xacro_file = os.path.join(amr1_share_dir, 'urdf', 'robot_urdf.xacro')
+    amr1_robot_description_config = xacro.process_file(amr1_xacro_file)
+    amr1_robot_urdf = amr1_robot_description_config.toxml()
 
+    amr1_robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='factory_amr1',
+        name='robot_state_publisher',
+        parameters=[{'robot_description': amr1_robot_urdf}]
+    )
 
-    # *********************** Gazebo *********************** # 
-    
+    amr1_joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        namespace='factory_amr1',
+        name='joint_state_publisher'
+    )
+
+    amr1_urdf_spawn_node = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        namespace='factory_amr1',
+        arguments=[
+            '-entity', 'factory_amr1',
+            '-topic', 'robot_description',
+            '-x', '2.0',
+            '-y', '2.0',
+            '-z', '0.0',
+            '-robot_namespace', 'factory_amr1',
+        ],
+        output='screen'
+    )
+
+    # *********************** Gazebo *********************** #
     # DECLARE Gazebo WORLD file:
     irb120_ros2_gazebo = os.path.join(
         get_package_share_directory('irb120_ros2_gazebo'),
         'worlds',
-        'irb120.world')
+        'irb120.world'
+    )
     # DECLARE Gazebo LAUNCH file:
     gazebo = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-                launch_arguments={'world': irb120_ros2_gazebo}.items(),
-             )
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
+        launch_arguments={'world': irb120_ros2_gazebo}.items(),
+    )
 
     # ***** COMMAND LINE ARGUMENTS ***** #
     print("")
@@ -99,47 +134,47 @@ def generate_launch_description():
     # Cell Layout:
     print("- Cell layout:")
     error = True
-    while (error == True):
+    while error:
         print("     + Option N1: ABB IRB-120 alone.")
         print("     + Option N2: ABB IRB-120 in Cranfield University cell.")
         print("     + Option N3: ABB IRB-120 Pick&Place Use-Case.")
-        cell_layout = input ("  Please select: ")
-        if (cell_layout == "1"):
+        cell_layout = input("  Please select: ")
+        if cell_layout == "1":
             error = False
             cell_layout_1 = "true"
             cell_layout_2 = "false"
             cell_layout_3 = "false"
-        elif (cell_layout == "2"):
+        elif cell_layout == "2":
             error = False
             cell_layout_1 = "false"
             cell_layout_2 = "true"
             cell_layout_3 = "false"
-        elif (cell_layout == "3"):
+        elif cell_layout == "3":
             error = False
             cell_layout_1 = "false"
             cell_layout_2 = "false"
             cell_layout_3 = "true"
         else:
-            print ("  Please select a valid option!")
+            print("  Please select a valid option!")
     print("")
 
     # End-Effector:
     print("- End-effector:")
     error = True
-    while (error == True):
+    while error:
         print("     + Option N1: No end-effector.")
         print("     + Option N2: Schunk EGP-64 parallel gripper.")
-        end_effector = input ("  Please select: ")
-        if (end_effector == "1"):
+        end_effector = input("  Please select: ")
+        if end_effector == "1":
             error = False
             EE_no = "true"
             EE_schunk = "false"
-        elif (end_effector == "2"):
+        elif end_effector == "2":
             error = False
             EE_no = "false"
             EE_schunk = "true"
         else:
-            print ("  Please select a valid option!")
+            print("  Please select a valid option!")
     print("")
 
     # ***** ROBOT DESCRIPTION ***** #
@@ -147,9 +182,7 @@ def generate_launch_description():
     irb120_description_path = os.path.join(
         get_package_share_directory('irb120_ros2_gazebo'))
     # ABB-IRB120 ROBOT urdf file path:
-    xacro_file = os.path.join(irb120_description_path,
-                              'urdf',
-                              'irb120.urdf.xacro')
+    xacro_file = os.path.join(irb120_description_path, 'urdf', 'irb120.urdf.xacro')
     # Generate ROBOT_DESCRIPTION for ABB-IRB120:
     doc = xacro.parse(open(xacro_file))
     xacro.process_doc(doc, mappings={
@@ -158,7 +191,7 @@ def generate_launch_description():
         "cell_layout_3": cell_layout_3,
         "EE_no": EE_no,
         "EE_schunk": EE_schunk,
-        })
+    })
     robot_description_config = doc.toxml()
     robot_description = {'robot_description': robot_description_config}
 
@@ -189,7 +222,6 @@ def generate_launch_description():
     )
 
     # ***** ROS2_CONTROL -> LOAD CONTROLLERS ***** #
-
     # Joint STATE BROADCASTER:
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
@@ -202,7 +234,7 @@ def generate_launch_description():
         executable="spawner",
         arguments=["irb120_controller", "-c", "/controller_manager"],
     )
-    
+
     # === SCHUNK EGP-64 === #
     egp64left_controller_spawner = Node(
         package="controller_manager",
@@ -216,25 +248,23 @@ def generate_launch_description():
     )
     # === SCHUNK EGP-64 === #
 
-
-    # *********************** MoveIt!2 *********************** #   
-    
+    # *********************** MoveIt!2 *********************** #
     # Command-line argument: RVIZ file?
     rviz_arg = DeclareLaunchArgument("rviz_file", default_value="False", description="Load RVIZ file.")
 
     # *** PLANNING CONTEXT *** #
     # Robot description, SRDF:
-    if (EE_no == "true"):
+    if EE_no == "true":
         robot_description_semantic_config = load_file(
             "irb120_ros2_moveit2", "config/irb120.srdf"
         )
     # === SCHUNK EGP-64 === #
-    elif (EE_schunk == "true"):
+    elif EE_schunk == "true":
         robot_description_semantic_config = load_file("irb120_ros2_moveit2", "config/irb120egp64.srdf")
     # === SCHUNK EGP-64 === #
 
     robot_description_semantic = {"robot_description_semantic": robot_description_semantic_config}
-    
+
     # Kinematics.yaml file:
     kinematics_yaml = load_yaml("irb120_ros2_moveit2", "config/kinematics.yaml")
     robot_description_kinematics = {"robot_description_kinematics": kinematics_yaml}
@@ -248,21 +278,22 @@ def generate_launch_description():
         }
     }
     # Load ompl_planning.yaml file:
-    if (EE_no == "true"):
+    if EE_no == "true":
         ompl_planning_yaml = load_yaml("irb120_ros2_moveit2", "config/ompl_planning.yaml")
     # === SCHUNK EGP-64 === #
-    elif (EE_schunk == "true"):ompl_planning_yaml = load_yaml("irb120_ros2_moveit2", "config/ompl_planning_egp64.yaml")
+    elif EE_schunk == "true":
+        ompl_planning_yaml = load_yaml("irb120_ros2_moveit2", "config/ompl_planning_egp64.yaml")
     # === SCHUNK EGP-64 === #
     ompl_planning_pipeline_config["move_group"].update(ompl_planning_yaml)
 
     # MoveIt!2 Controllers:
-    if (EE_no == "true"):
+    if EE_no == "true":
         moveit_simple_controllers_yaml = load_yaml("irb120_ros2_moveit2", "config/irb120_controllers.yaml")
     # === SCHUNK EGP-64 === #
-    elif (EE_schunk == "true"):
+    elif EE_schunk == "true":
         moveit_simple_controllers_yaml = load_yaml("irb120_ros2_moveit2", "config/irb120egp64_controllers.yaml")
     # === SCHUNK EGP-64 === #
-    
+
     moveit_controllers = {
         "moveit_simple_controller_manager": moveit_simple_controllers_yaml,
         "moveit_controller_manager": "moveit_simple_controller_manager/MoveItSimpleControllerManager",
@@ -293,18 +324,18 @@ def generate_launch_description():
             trajectory_execution,
             moveit_controllers,
             planning_scene_monitor_parameters,
-            {"use_sim_time": True}, 
+            {"use_sim_time": True},
         ],
     )
 
     # RVIZ:
     load_RVIZfile = LaunchConfiguration("rviz_file")
     rviz_base = os.path.join(get_package_share_directory("irb120_ros2_moveit2"), "config")
-    
-    if (EE_no == "true"):
+
+    if EE_no == "true":
         rviz_full_config = os.path.join(rviz_base, "irb120_moveit2.rviz")
     # === SCHUNK EGP-64 === #
-    elif (EE_schunk == "true"):
+    elif EE_schunk == "true":
         rviz_full_config = os.path.join(rviz_base, "irb120egp64_moveit2.rviz")
     # === SCHUNK EGP-64 === #
 
@@ -409,41 +440,44 @@ def generate_launch_description():
     return LaunchDescription(
         [
             # Gazebo nodes:
-            gazebo, 
+            gazebo,
             spawn_entity,
+            amr1_urdf_spawn_node,   # amr1
             # ROS2_CONTROL:
             static_tf,
             robot_state_publisher,
-            
+            amr1_robot_state_publisher_node,    # amr1
+            amr1_joint_state_publisher_node,    # amr1
+
             # ROS2 Controllers:
             RegisterEventHandler(
                 OnProcessExit(
-                    target_action = spawn_entity,
-                    on_exit = [
+                    target_action=spawn_entity,
+                    on_exit=[
                         joint_state_broadcaster_spawner,
                     ]
                 )
             ),
             RegisterEventHandler(
                 OnProcessExit(
-                    target_action = joint_state_broadcaster_spawner,
-                    on_exit = [
+                    target_action=joint_state_broadcaster_spawner,
+                    on_exit=[
                         joint_trajectory_controller_spawner,
                     ]
                 )
             ),
             RegisterEventHandler(
                 OnProcessExit(
-                    target_action = joint_trajectory_controller_spawner,
-                    on_exit = [
+                    target_action=joint_trajectory_controller_spawner,
+                    on_exit=[
                         egp64left_controller_spawner,
                     ]
                 )
             ),
             RegisterEventHandler(
                 OnProcessExit(
-                    target_action = egp64left_controller_spawner,
-                    on_exit = [
+                    target_action=egp64left_controller_spawner,
+                    on_exit=[
                         egp64right_controller_spawner,
                     ]
                 )
@@ -451,8 +485,8 @@ def generate_launch_description():
 
             RegisterEventHandler(
                 OnProcessExit(
-                    target_action = egp64right_controller_spawner,
-                    on_exit = [
+                    target_action=egp64right_controller_spawner,
+                    on_exit=[
 
                         # MoveIt!2:
                         TimerAction(

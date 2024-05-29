@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <robot name="factory_amr" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
+    <xacro:arg name="robot_namespace" default=""/>
     <xacro:include filename="factory_amr.xacro"/>
 
     <xacro:include filename="gazebo_control.xacro"/>
