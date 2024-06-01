@@ -8,7 +8,7 @@
   <link name="base_link">
     <inertial>
       <origin xyz="-0.002396599951463409 2.104073385822183e-15 0.2688636212913025" rpy="0 0 0"/>
-      <mass value="5"/>
+      <mass value="2"/>
       <inertia ixx="2.322166" iyy="2.720165" izz="3.470128" ixy="0.0" iyz="0.0" ixz="-0.006447"/>
     </inertial>
     <visual>
@@ -199,6 +199,7 @@
     <parent link="base_link"/>
     <child link="right_wheel_link"/>
     <axis xyz="0.0 0.0 -1.0"/>
+    <limit effort="10" velocity="1.0"/>
   </joint>
 
   <joint name="left_wheel_joint" type="continuous">
@@ -206,6 +207,7 @@
     <parent link="base_link"/>
     <child link="left_wheel_link"/>
     <axis xyz="0.0 0.0 1.0"/>
+    <limit effort="10" velocity="1.0"/>
   </joint>
 
   <joint name="luggage_joint" type="revolute">
