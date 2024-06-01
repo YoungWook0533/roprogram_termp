@@ -75,7 +75,6 @@ def generate_launch_description():
     amr1_robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        namespace='factory_amr1',
         name='robot_state_publisher',
         parameters=[{'robot_description': amr1_robot_urdf}]
     )
@@ -83,14 +82,12 @@ def generate_launch_description():
     amr1_joint_state_publisher_node = Node(
         package='joint_state_publisher',
         executable='joint_state_publisher',
-        namespace='factory_amr1',
         name='joint_state_publisher'
     )
 
     amr1_urdf_spawn_node = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        namespace='factory_amr1',
         arguments=[
             '-entity', 'factory_amr1',
             '-topic', 'robot_description',
@@ -100,7 +97,6 @@ def generate_launch_description():
             '-R', '0.0',   
             '-P', '0.0',   
             '-Y', '1.57',  
-            '-robot_namespace', 'factory_amr1',
         ],
         output='screen'
     )
@@ -118,105 +114,11 @@ def generate_launch_description():
                 launch_arguments={'world': irb120_ros2_gazebo}.items(),
              )
     
-    # ========== COMMAND LINE ARGUMENTS ========== #
-    print("")
-    print(" --- Cranfield University --- ")
-    print("        (c) IFRA Group        ")
-    print("")
-
-    print("ros2_RobotSimulation --> ABB IRB-120")
-    print("Launch file -> irb120_simulation.launch.py")
-
-    print("")
-    print("Robot configuration:")
-    print("")
-
-    # Cell Layout:
-    print("- Cell layout:")
-    error = True
-    while (error == True):
-        print("     + Option N1: ABB IRB-120 alone.")
-        print("     + Option N2: ABB IRB-120 in Cranfield University cell.")
-        print("     + Option N3: ABB IRB-120 Pick&Place Use-Case.")
-        cell_layout = input ("  Please select: ")
-        if (cell_layout == "1"):
-            error = False
-            cell_layout_1 = "true"
-            cell_layout_2 = "false"
-            cell_layout_3 = "false"
-        elif (cell_layout == "2"):
-            error = False
-            cell_layout_1 = "false"
-            cell_layout_2 = "true"
-            cell_layout_3 = "false"
-        elif (cell_layout == "3"):
-            error = False
-            cell_layout_1 = "false"
-            cell_layout_2 = "false"
-            cell_layout_3 = "true"
-        else:
-            print ("  Please select a valid option!")
-    print("")
-
-    # End-Effector:
-    print("- End-effector:")
-    error = True
-    while (error == True):
-        print("     + Option N1: No end-effector.")
-        print("     + Option N2: Schunk EGP-64 parallel gripper.")
-        end_effector = input ("  Please select: ")
-        if (end_effector == "1"):
-            error = False
-            EE_no = "true"
-            EE_schunk = "false"
-        elif (end_effector == "2"):
-            error = False
-            EE_no = "false"
-            EE_schunk = "true"
-        else:
-            print ("  Please select a valid option!")
-    print("")
-
-    # ***** ROBOT DESCRIPTION ***** #
-    # ABB-IRB120 Description file package:
-    irb120_description_path = os.path.join(
-        get_package_share_directory('irb120_ros2_gazebo'))
-    # ABB-IRB120 ROBOT urdf file path:
-    xacro_file = os.path.join(irb120_description_path,
-                              'urdf',
-                              'irb120.urdf.xacro')
-    # Generate ROBOT_DESCRIPTION for ABB-IRB120:
-    doc = xacro.parse(open(xacro_file))
-    xacro.process_doc(doc, mappings={
-        "cell_layout_1": cell_layout_1,
-        "cell_layout_2": cell_layout_2,
-        "cell_layout_3": cell_layout_3,
-        "EE_no": EE_no,
-        "EE_schunk": EE_schunk,
-        })
-    robot_description_config = doc.toxml()
-    robot_description = {'robot_description': robot_description_config}
-
-    # ROBOT STATE PUBLISHER NODE:
-    node_robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        output='screen',
-        parameters=[robot_description]
-    )
-
-    # SPAWN ROBOT TO GAZEBO:
-    spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
-                        arguments=['-topic', 'robot_description',
-                                   '-entity', 'irb120'],
-                        output='screen')
 
     # ***** RETURN LAUNCH DESCRIPTION ***** #
     return LaunchDescription([
         gazebo, 
-        node_robot_state_publisher,
-        spawn_entity,
-        amr1_urdf_spawn_node,               # amr1
-        amr1_robot_state_publisher_node,    # amr1
-        amr1_joint_state_publisher_node,    # amr1
+        amr1_urdf_spawn_node,               
+        amr1_robot_state_publisher_node,    
+        amr1_joint_state_publisher_node,    
     ])

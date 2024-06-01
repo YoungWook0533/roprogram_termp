@@ -8,7 +8,6 @@ import os
 import xacro
 from ament_index_python.packages import get_package_share_directory
 
-
 def generate_launch_description():
     share_dir = get_package_share_directory('factory_amr_description')
 
@@ -22,7 +21,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         parameters=[
-            {'robot_description': robot_urdf}
+            {'robot_description': robot_urdf, 'use_sim_time': True}
         ]
     )
     
@@ -35,7 +34,14 @@ def generate_launch_description():
     joint_state_publisher_node = Node(
         package='joint_state_publisher',
         executable='joint_state_publisher',
-        name='joint_state_publisher'
+        name='joint_state_publisher',
+        parameters=[{'use_sim_time': True}]
+    )
+
+    irb120_ros2_gazebo = os.path.join(
+        get_package_share_directory('irb120_ros2_gazebo'),
+        'worlds',
+        'irb120.world'
     )
 
     gazebo_server = IncludeLaunchDescription(
@@ -47,6 +53,7 @@ def generate_launch_description():
             ])
         ]),
         launch_arguments={
+            'world': irb120_ros2_gazebo,
             'pause': 'true'
         }.items()
     )
@@ -66,7 +73,13 @@ def generate_launch_description():
         executable='spawn_entity.py',
         arguments=[
             '-entity', 'factory_amr',
-            '-topic', 'robot_description'
+            '-topic', 'robot_description',
+            '-x', '0.5',
+            '-y', '0.9',
+            '-z', '0.0',
+            '-R', '0.0',
+            '-P', '0.0',
+            '-Y', '1.57'
         ],
         output='screen'
     )
