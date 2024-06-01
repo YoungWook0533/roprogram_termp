@@ -66,6 +66,45 @@ def load_yaml(package_name, file_path):
 # ========== **GENERATE LAUNCH DESCRIPTION** ========== #
 def generate_launch_description():
     
+    # *********************** AMR *********************** #
+    amr1_share_dir = get_package_share_directory('factory_amr_description')
+    amr1_xacro_file = os.path.join(amr1_share_dir, 'urdf', 'robot_urdf.xacro')
+    amr1_robot_description_config = xacro.process_file(amr1_xacro_file)
+    amr1_robot_urdf = amr1_robot_description_config.toxml()
+
+    amr1_robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='factory_amr1',
+        name='robot_state_publisher',
+        parameters=[{'robot_description': amr1_robot_urdf}]
+    )
+
+    amr1_joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        namespace='factory_amr1',
+        name='joint_state_publisher'
+    )
+
+    amr1_urdf_spawn_node = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        namespace='factory_amr1',
+        arguments=[
+            '-entity', 'factory_amr1',
+            '-topic', 'robot_description',
+            '-x', '0.5',
+            '-y', '0.9',
+            '-z', '0.0',
+            '-R', '0.0',   
+            '-P', '0.0',   
+            '-Y', '1.57',  
+            '-robot_namespace', 'factory_amr1',
+        ],
+        output='screen'
+    )
+    
     # ***** GAZEBO ***** #   
     # DECLARE Gazebo WORLD file:
     irb120_ros2_gazebo = os.path.join(
@@ -176,5 +215,8 @@ def generate_launch_description():
     return LaunchDescription([
         gazebo, 
         node_robot_state_publisher,
-        spawn_entity
+        spawn_entity,
+        amr1_urdf_spawn_node,               # amr1
+        amr1_robot_state_publisher_node,    # amr1
+        amr1_joint_state_publisher_node,    # amr1
     ])

@@ -70,16 +70,28 @@ def load_yaml(package_name, file_path):
 def generate_launch_description():
     # *********************** AMR *********************** #
     amr1_share_dir = get_package_share_directory('factory_amr_description')
-    amr1_xacro_file = os.path.join(amr1_share_dir, 'urdf', 'robot_urdf.xacro')
-    amr1_robot_description_config = xacro.process_file(amr1_xacro_file)
+    amr1_xacro_file = os.path.join(amr1_share_dir, 'urdf', 'robot_urdf_1.xacro')
+    amr1_robot_description_config = xacro.process_file(amr1_xacro_file, mappings={'robot_namespace': 'factory_amr1'})
     amr1_robot_urdf = amr1_robot_description_config.toxml()
+
+    amr2_share_dir = get_package_share_directory('factory_amr_description')
+    amr2_xacro_file = os.path.join(amr2_share_dir, 'urdf', 'robot_urdf_2.xacro')
+    amr2_robot_description_config = xacro.process_file(amr2_xacro_file, mappings={'robot_namespace': 'factory_amr2'})
+    amr2_robot_urdf = amr2_robot_description_config.toxml()
+    
+    amr3_share_dir = get_package_share_directory('factory_amr_description')
+    amr3_xacro_file = os.path.join(amr3_share_dir, 'urdf', 'robot_urdf_3.xacro')
+    amr3_robot_description_config = xacro.process_file(amr3_xacro_file, mappings={'robot_namespace': 'factory_amr3'})
+    amr3_robot_urdf = amr3_robot_description_config.toxml()
 
     amr1_robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         namespace='factory_amr1',
         name='robot_state_publisher',
-        parameters=[{'robot_description': amr1_robot_urdf}]
+        parameters=[{'frame_prefix': 'factory_amr1/',
+                    'use_sim_time': True,
+                    'robot_description': amr1_robot_urdf}]
     )
 
     amr1_joint_state_publisher_node = Node(
@@ -96,10 +108,83 @@ def generate_launch_description():
         arguments=[
             '-entity', 'factory_amr1',
             '-topic', 'robot_description',
-            '-x', '2.0',
-            '-y', '2.0',
+            '-x', '0.4',
+            '-y', '0.75',
             '-z', '0.0',
+            '-R', '0.0',   
+            '-P', '0.0',   
+            '-Y', '1.57',  
             '-robot_namespace', 'factory_amr1',
+        ],
+        output='screen'
+    )
+
+    amr2_robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='factory_amr2',
+        name='robot_state_publisher',
+        parameters=[{'frame_prefix': 'factory_amr2/',
+                    'use_sim_time': True,
+                    'robot_description': amr2_robot_urdf}]
+    )
+
+    amr2_joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        namespace='factory_amr2',
+        name='joint_state_publisher'
+    )
+
+    amr2_urdf_spawn_node = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        namespace='factory_amr2',
+        arguments=[
+            '-entity', 'factory_amr2',
+            '-topic', 'robot_description',
+            '-x', '-0.2',
+            '-y', '-0.8',
+            '-z', '0.0',
+            '-R', '0.0',
+            '-P', '0.0',   
+            '-Y', '4.71',   
+            '-robot_namespace', 'factory_amr2',
+        ],
+        output='screen'
+    )
+
+    amr3_robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='factory_amr3',
+        name='robot_state_publisher',
+        parameters=[{'frame_prefix': 'factory_amr3/',
+                    'use_sim_time': True,
+                    'robot_description': amr3_robot_urdf}]
+    )
+
+    amr3_joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        namespace='factory_amr3',
+        name='joint_state_publisher'
+    )
+
+    amr3_urdf_spawn_node = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        namespace='factory_amr3',
+        arguments=[
+            '-entity', 'factory_amr3',
+            '-topic', 'robot_description',
+            '-x', '1.1',
+            '-y', '-0.2',
+            '-z', '0.0',
+            '-R', '0.0',   
+            '-P', '0.0',   
+            '-Y', '0.0',  
+            '-robot_namespace', 'factory_amr3',
         ],
         output='screen'
     )
@@ -442,12 +527,18 @@ def generate_launch_description():
             # Gazebo nodes:
             gazebo,
             spawn_entity,
-            amr1_urdf_spawn_node,   # amr1
             # ROS2_CONTROL:
             static_tf,
             robot_state_publisher,
+            amr1_urdf_spawn_node,               # amr1
             amr1_robot_state_publisher_node,    # amr1
             amr1_joint_state_publisher_node,    # amr1
+            amr2_urdf_spawn_node,               # amr2
+            amr2_robot_state_publisher_node,    # amr2
+            amr2_joint_state_publisher_node,    # amr2
+            amr3_urdf_spawn_node,               # amr3
+            amr3_robot_state_publisher_node,    # amr3
+            amr3_joint_state_publisher_node,    # amr3
 
             # ROS2 Controllers:
             RegisterEventHandler(

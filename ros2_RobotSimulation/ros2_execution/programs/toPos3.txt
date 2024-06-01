@@ -4,7 +4,7 @@
 {'action': 'Attach', 'value': {'object': 'box', 'endeffector': 'EE_egp64'}}
 {'action': 'GripperClose'}
 {'action': 'MoveL', 'value': {'movex': 0.0, 'movey': 0.0, 'movez': 0.1}, 'speed': 1.0}
-{'action': 'MoveXYZ', 'value': {'positionx': 0.6, 'positiony': -0.1, 'positionz': 0.9}, 'speed': 1.0}
+{'action': 'MoveXYZ', 'value': {'positionx': 0.6, 'positiony': -0.1, 'positionz': 1.0}, 'speed': 1.0}
 {'action': 'GripperOpen'}
 {'action': 'Detach', 'value': {'object': 'box'}}
 {'action': 'MoveL', 'value': {'movex': -0.06, 'movey': 0.0, 'movez': 0.09}, 'speed': 1.0}
