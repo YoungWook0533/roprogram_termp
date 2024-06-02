@@ -1,0 +1,40 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 50
+
+    joint_state_controller:
+      type: joint_state_controller/JointStateController
+      publish_rate: 50
+
+    luggage_position_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+      joints:
+        - luggage_joint
+      state_publish_rate: 50
+      action_monitor_rate: 50
+      constraints:
+        goal_time: 0.5
+        stopped_velocity_tolerance: 0.01
+        luggage_joint:
+          trajectory: 0.1
+          goal: 0.1
+      trajectory_limits:
+        luggage_joint:
+          max_velocity: 0.1
+          has_velocity_limits: true
+          max_acceleration: 0.1
+          has_acceleration_limits: true
+      state_interfaces:
+        - position
+        - velocity
+      command_interfaces:
+        - position
+
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+      left_wheel_names: ["left_wheel_joint"]
+      right_wheel_names: ["right_wheel_joint"]
+      publish_rate: 50
+      velocity_rolling_window_size: 10
+      cmd_vel_timeout: 0.5
+      publish_limited_velocity: true

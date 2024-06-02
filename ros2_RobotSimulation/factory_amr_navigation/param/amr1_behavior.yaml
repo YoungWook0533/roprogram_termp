@@ -2,19 +2,22 @@ factory_amr1/behavior_server:
   ros__parameters:
     costmap_topic: local_costmap/costmap_raw
     footprint_topic: local_costmap/published_footprint
-    cycle_frequency: 10.0
+    cycle_frequency: 12.0  # Increased frequency
     behavior_plugins: ["spin", "backup", "wait"]
     spin:
       plugin: "nav2_behaviors/Spin"
+      timeout: 15.0  # Increased timeout
+      target_yaw: 360.0  # Target spin angle
+      tolerance: 0.1  # Tolerance for the spin action
     backup:
       plugin: "nav2_behaviors/BackUp"
     wait:
       plugin: "nav2_behaviors/Wait"
     global_frame: factory_amr1/odom
     robot_base_frame: factory_amr1/base_link
-    transform_timeout: 0.1
+    transform_timeout: 0.5  # Increased transform timeout
     use_sim_time: true
     simulate_ahead_time: 2.0
-    max_rotational_vel: 1.0
-    min_rotational_vel: 0.4
-    rotational_acc_lim: 3.2
+    max_rotational_vel: 1.5  # Adjusted max rotational velocity
+    min_rotational_vel: 0.7  # Adjusted min rotational velocity
+    rotational_acc_lim: 3.2  # Adjusted rotational acceleration limit

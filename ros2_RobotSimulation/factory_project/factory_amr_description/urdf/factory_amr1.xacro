@@ -3,12 +3,13 @@
 
   <xacro:include filename="inertial_macros.xacro"/>
   <xacro:include filename="$(find factory_amr_description)/urdf/materials.xacro" />
-  <xacro:include filename="$(find factory_amr_description)/urdf/factory_amr.trans" />
+  <xacro:include filename="$(find factory_amr_description)/urdf/factory_amr1.trans" />
   <xacro:include filename="$(find factory_amr_description)/urdf/factory_amr.gazebo" />
+  
   <link name="base_link">
     <inertial>
       <origin xyz="-0.002396599951463409 2.104073385822183e-15 0.2688636212913025" rpy="0 0 0"/>
-      <mass value="2"/>
+      <mass value="5"/>
       <inertia ixx="2.322166" iyy="2.720165" izz="3.470128" ixy="0.0" iyz="0.0" ixz="-0.006447"/>
     </inertial>
     <visual>
@@ -30,13 +31,12 @@
   </gazebo>
 
   <joint name="base_footprint_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="base_footprint"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
+    <parent link="base_link"/>
+    <child link="base_footprint"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
 
-    <link name="base_footprint">
-    </link>
+  <link name="base_footprint"/>
 
   <link name="right_wheel_link">
     <inertial>
@@ -111,8 +111,6 @@
     <material>Gazebo/Orange</material>
   </gazebo>
 
-
-
   <link name="imu_link">
     <inertial>
       <origin xyz="0.0 0.0 -0.0050000000000000044" rpy="0 0 0"/>
@@ -137,7 +135,6 @@
     <material>Gazebo/Red</material>
   </gazebo>
 
-  <!-- caster wheels -->
   <joint name="front_caster" type="fixed">
     <parent link="base_link"/>
     <child link="front_caster_link"/>
@@ -146,16 +143,16 @@
   <link name="front_caster_link">
     <visual>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
     </collision>
-    <xacro:inertial_sphere mass="0.1" radius="0.05">
+    <xacro:inertial_sphere mass="0.1" radius="0.03"> <!-- Adjusted mass and radius -->
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:inertial_sphere>
   </link>
@@ -173,16 +170,16 @@
   <link name="back_caster_link">
     <visual>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
     </collision>
-    <xacro:inertial_sphere mass="0.1" radius="0.05">
+    <xacro:inertial_sphere mass="0.1" radius="0.03"> <!-- Adjusted mass and radius -->
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:inertial_sphere>
   </link>
@@ -191,8 +188,6 @@
     <mu1 value="0.001"/>
     <mu2 value="0.001"/>
   </gazebo>
-
-  <!-- joints -->
 
   <joint name="right_wheel_joint" type="continuous">
     <origin xyz="0.0 -0.25 0.1" rpy="${pi/2} 0 0"/>
@@ -218,15 +213,12 @@
     <limit upper="0.785398" lower="0.0" effort="100" velocity="100"/>
   </joint>
 
-
-
   <joint name="imu_joint" type="fixed">
     <origin xyz="0.0 0.0 0.23" rpy="0 0 0"/>
     <parent link="base_link"/>
     <child link="imu_link"/>
   </joint>
 
-  
   <joint name="laser_joint" type="fixed">
       <origin xyz="0.0 0.0 0.26" rpy="0 0 0"/>
       <parent link="base_link"/>
@@ -284,6 +276,5 @@
           </plugin>
       </sensor>
   </gazebo>
-
 
 </robot>

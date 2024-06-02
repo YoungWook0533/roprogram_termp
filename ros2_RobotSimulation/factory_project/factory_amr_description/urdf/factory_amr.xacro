@@ -138,7 +138,6 @@
     <material>Gazebo/Red</material>
   </gazebo>
 
-  <!-- caster wheels -->
   <joint name="front_caster" type="fixed">
     <parent link="base_link"/>
     <child link="front_caster_link"/>
@@ -147,16 +146,16 @@
   <link name="front_caster_link">
     <visual>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
     </collision>
-    <xacro:inertial_sphere mass="0.1" radius="0.05">
+    <xacro:inertial_sphere mass="0.1" radius="0.03"> <!-- Adjusted mass and radius -->
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:inertial_sphere>
   </link>
@@ -174,16 +173,16 @@
   <link name="back_caster_link">
     <visual>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.03"/> <!-- Reduced size from 0.05 -->
       </geometry>
     </collision>
-    <xacro:inertial_sphere mass="0.1" radius="0.05">
+    <xacro:inertial_sphere mass="0.1" radius="0.03"> <!-- Adjusted mass and radius -->
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:inertial_sphere>
   </link>
@@ -192,8 +191,6 @@
     <mu1 value="0.001"/>
     <mu2 value="0.001"/>
   </gazebo>
-
-  <!-- joints -->
 
   <joint name="right_wheel_joint" type="continuous">
     <origin xyz="0.0 -0.25 0.1" rpy="${pi/2} 0 0"/>
