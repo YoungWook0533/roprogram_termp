@@ -4,7 +4,7 @@
 ```sh
  cd src
  git clone https://github.com/YoungWook0533/roprogram_termp.git
- colcon build      //ignore warnings
+ colcon build      #ignore warnings
  source install/setup.bash
 ```
 
@@ -22,7 +22,7 @@ ros2 launch ros2_execution execute_controller.py
 ```
 -To see amr luggage_joint moving (dump luggages)
 ```sh
-ros2 launch factory_amr_description gazebo.launch.py  //for testing luggage_joint, will be merged into irb120_interface.launch.py soon
+ros2 launch factory_amr_description gazebo.launch.py  #for testing luggage_joint, will be merged into irb120_interface.launch.py soon
 ```
 -Test luggage joint
 ```sh
