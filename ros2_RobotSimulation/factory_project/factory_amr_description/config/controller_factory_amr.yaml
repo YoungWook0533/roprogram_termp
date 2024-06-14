@@ -2,17 +2,17 @@ controller_manager:
   ros__parameters:
     update_rate: 50
 
-    amr1_joint_state_broadcaster:
+    amr_joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
       publish_rate: 50
 
-    amr1_luggage_controller:
+    amr_luggage_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    amr1_diff_drive_controller:
+    amr_diff_drive_controller:
       type: "diff_drive_controller/DiffDriveController"
 
-amr1_luggage_controller:
+amr_luggage_controller:
   ros__parameters: 
     joints:
       - luggage_joint
@@ -37,7 +37,7 @@ amr1_luggage_controller:
         trajectory: 0.1
         goal: 0.1
       
-amr1_diff_drive_controller:
+amr_diff_drive_controller:
   ros__parameters:
     left_wheel_names: ["left_wheel_joint"]
     right_wheel_names: ["right_wheel_joint"]

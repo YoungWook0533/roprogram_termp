@@ -1,20 +1,20 @@
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, RegisterEventHandler
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution
+from launch.event_handlers import OnProcessExit
 import os
 import xacro
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     share_dir = get_package_share_directory('factory_amr_description')
-
-    # xacro_file = os.path.join(share_dir, 'urdf', 'factory_amr.xacro')
     xacro_file = os.path.join(share_dir, 'urdf', 'robot_urdf.xacro')
     robot_description_config = xacro.process_file(xacro_file)
     robot_urdf = robot_description_config.toxml()
+    robot_controllers = os.path.join(share_dir, 'config', 'controller_factory_amr.yaml')
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
@@ -24,18 +24,12 @@ def generate_launch_description():
             {'robot_description': robot_urdf, 'use_sim_time': True}
         ]
     )
-    
-    rsp = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('factory_amr_description'), 'launch', 'rsp.launch.py'
-        )]), launch_arguments={'use_sim_time': 'true'}.items()
-    )
 
-    joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        parameters=[{'use_sim_time': True}]
+    control_node = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        parameters=[robot_controllers],
+        output='both',
     )
 
     irb120_ros2_gazebo = os.path.join(
@@ -54,7 +48,6 @@ def generate_launch_description():
         ]),
         launch_arguments={
             'world': irb120_ros2_gazebo,
-            'pause': 'true'
         }.items()
     )
 
@@ -84,11 +77,65 @@ def generate_launch_description():
         output='screen'
     )
 
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['amr_joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+        output='screen'
+    )
+
+    diff_drive_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['amr_diff_drive_controller', '--controller-manager', '/controller_manager'],
+        output='screen'
+    )
+
+    luggage_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['amr_luggage_controller', '--controller-manager', '/controller_manager'],
+        output='screen'
+    )
+
+    delay_joint_state_broadcaster_spawner_after_spawn_entity = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=urdf_spawn_node,
+            on_exit=[joint_state_broadcaster_spawner]
+        )
+    )
+
+    delay_joint_state_broadcaster_after_control_node = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=control_node,
+            on_exit=[joint_state_broadcaster_spawner]
+        )
+    )
+
+    delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[luggage_controller_spawner]
+        )
+    )
+
+    delay_diff_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[diff_drive_controller_spawner]
+        )
+    )
+
     return LaunchDescription([
-        # robot_state_publisher_node,
-        rsp,
-        joint_state_publisher_node,
+        robot_state_publisher_node,
+        control_node,
         gazebo_server,
         gazebo_client,
         urdf_spawn_node,
+        delay_joint_state_broadcaster_spawner_after_spawn_entity,
+        delay_joint_state_broadcaster_after_control_node,
+        delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_diff_controller_spawner_after_joint_state_broadcaster_spawner,
     ])
+
+#ros2 topic pub --once /amr_luggage_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "{joint_names: ['luggage_joint'], points: [{positions: [1.0], time_from_start: {sec: 3, nanosec: 0}}]}"

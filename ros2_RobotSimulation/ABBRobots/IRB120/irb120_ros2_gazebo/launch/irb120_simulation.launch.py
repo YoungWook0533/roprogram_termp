@@ -71,6 +71,15 @@ def generate_launch_description():
     amr1_xacro_file = os.path.join(amr1_share_dir, 'urdf', 'robot_urdf_1.xacro')
     amr1_robot_description_config = xacro.process_file(amr1_xacro_file, mappings={'robot_namespace': 'factory_amr1'})
     amr1_robot_urdf = amr1_robot_description_config.toxml()
+    robot_controllers = os.path.join(amr1_share_dir, 'config', 'controller_factory_amr1.yaml')
+
+    control_node = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        parameters=[amr1_robot_urdf, robot_controllers],
+        output='both',
+        remappings=[('~/robot_description', '/factory_amr1/robot_description')]
+    )
 
     amr1_robot_state_publisher_node = Node(
         package='robot_state_publisher',
@@ -106,6 +115,13 @@ def generate_launch_description():
         ],
         output='screen'
     )
+
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster', '--controller-manager',
+                   ['controller_manager']],
+    )
     
     # ***** GAZEBO ***** #   
     # DECLARE Gazebo WORLD file:
@@ -124,7 +140,9 @@ def generate_launch_description():
     # ***** RETURN LAUNCH DESCRIPTION ***** #
     return LaunchDescription([
         gazebo, 
+        control_node,
         amr1_urdf_spawn_node,               
         amr1_robot_state_publisher_node,    
-        amr1_joint_state_publisher_node,    
+        #amr1_joint_state_publisher_node,    
+        joint_state_broadcaster_spawner 
     ])
