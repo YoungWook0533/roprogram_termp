@@ -14,7 +14,7 @@ $ ros2 launch irb120_ros2_moveit2 irb120_interface.launch.py
 ```
 -Spawn robots
 ```sh
-$ ros2 ros2 launch factory_amr_description multi_amr_spawn.launch.py 
+$ ros2 launch factory_amr_description multi_amr_spawn.launch.py 
 ```
 -Multi robot navigation node
 ```sh
