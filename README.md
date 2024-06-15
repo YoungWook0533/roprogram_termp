@@ -22,7 +22,7 @@ $ ros2 launch factory_amr_navigation nav2_custom.launch.py    #currently not ava
 ```
 -To view manipulator action
 ```sh
-$ ros2 launch ros2_execution execute_controller.py
+$ ros2 run ros2_execution execute_controller.py
 ```
 -Test luggage joint
 ```sh
