@@ -530,15 +530,15 @@ def generate_launch_description():
             # ROS2_CONTROL:
             static_tf,
             robot_state_publisher,
-            amr1_urdf_spawn_node,               # amr1
-            amr1_robot_state_publisher_node,    # amr1
-            amr1_joint_state_publisher_node,    # amr1
-            amr2_urdf_spawn_node,               # amr2
-            amr2_robot_state_publisher_node,    # amr2
-            amr2_joint_state_publisher_node,    # amr2
-            amr3_urdf_spawn_node,               # amr3
-            amr3_robot_state_publisher_node,    # amr3
-            amr3_joint_state_publisher_node,    # amr3
+            # amr1_urdf_spawn_node,               # amr1
+            # amr1_robot_state_publisher_node,    # amr1
+            # amr1_joint_state_publisher_node,    # amr1
+            # amr2_urdf_spawn_node,               # amr2
+            # amr2_robot_state_publisher_node,    # amr2
+            # amr2_joint_state_publisher_node,    # amr2
+            # amr3_urdf_spawn_node,               # amr3
+            # amr3_robot_state_publisher_node,    # amr3
+            # amr3_joint_state_publisher_node,    # amr3
 
             # ROS2 Controllers:
             RegisterEventHandler(

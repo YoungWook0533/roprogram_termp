@@ -26,6 +26,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'twist_to_twist_stamped = factory_amr_description.twist_to_twist_stamped:main',
         ],
     },
 )

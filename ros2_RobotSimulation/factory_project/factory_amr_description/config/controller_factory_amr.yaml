@@ -9,7 +9,7 @@ controller_manager:
     amr_luggage_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    amr_diff_drive_controller:
+    factory_amr:
       type: "diff_drive_controller/DiffDriveController"
 
 amr_luggage_controller:
@@ -37,7 +37,7 @@ amr_luggage_controller:
         trajectory: 0.1
         goal: 0.1
       
-amr_diff_drive_controller:
+factory_amr:
   ros__parameters:
     left_wheel_names: ["left_wheel_joint"]
     right_wheel_names: ["right_wheel_joint"]

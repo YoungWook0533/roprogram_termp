@@ -3,6 +3,6 @@
     <xacro:arg name="robot_namespace" default="factory_amr1"/>
     <xacro:include filename="factory_amr1.xacro"/>
 
-    <xacro:include filename="gazebo_control1.xacro"/>
+    <xacro:include filename="amr1_ros2_control.xacro"/>
 
 </robot>

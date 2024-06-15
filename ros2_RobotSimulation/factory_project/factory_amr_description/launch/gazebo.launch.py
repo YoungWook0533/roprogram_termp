@@ -11,10 +11,10 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     share_dir = get_package_share_directory('factory_amr_description')
-    xacro_file = os.path.join(share_dir, 'urdf', 'robot_urdf.xacro')
+    xacro_file = os.path.join(share_dir, 'urdf', 'robot_urdf_3.xacro')
     robot_description_config = xacro.process_file(xacro_file)
     robot_urdf = robot_description_config.toxml()
-    robot_controllers = os.path.join(share_dir, 'config', 'controller_factory_amr.yaml')
+    robot_controllers = os.path.join(share_dir, 'config', 'controller_factory_amr3.yaml')
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
@@ -65,7 +65,7 @@ def generate_launch_description():
         package='gazebo_ros',
         executable='spawn_entity.py',
         arguments=[
-            '-entity', 'factory_amr',
+            '-entity', 'factory_amr3',
             '-topic', 'robot_description',
             '-x', '0.5',
             '-y', '0.9',
@@ -80,21 +80,21 @@ def generate_launch_description():
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['amr_joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+        arguments=['amr3_joint_state_broadcaster', '--controller-manager', '/controller_manager'],
         output='screen'
     )
 
     diff_drive_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['amr_diff_drive_controller', '--controller-manager', '/controller_manager'],
+        arguments=['factory_amr3', '--controller-manager', '/controller_manager'],
         output='screen'
     )
 
     luggage_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['amr_luggage_controller', '--controller-manager', '/controller_manager'],
+        arguments=['amr3_luggage_controller', '--controller-manager', '/controller_manager'],
         output='screen'
     )
 
@@ -139,3 +139,4 @@ def generate_launch_description():
     ])
 
 #ros2 topic pub --once /amr_luggage_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "{joint_names: ['luggage_joint'], points: [{positions: [1.0], time_from_start: {sec: 3, nanosec: 0}}]}"
+#ros2 topic pub /factory_amr/cmd_vel geometry_msgs/msg/TwistStamped "{header: {stamp: {sec: 0,nanosec: 0}, frame_id: 'base_link'}, twist: {linear: {x: 1.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}}"
