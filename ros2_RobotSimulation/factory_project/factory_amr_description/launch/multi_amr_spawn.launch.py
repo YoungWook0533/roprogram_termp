@@ -273,7 +273,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        gazebo,
+        #gazebo,
         amr1_robot_state_publisher_node,
         amr1_control_node,
         amr1_urdf_spawn_node,
