@@ -7,30 +7,52 @@ def generate_launch_description():
 
     use_sim_time = True
 
-    controller_yaml_amr1 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr1_controller.yaml')
-    bt_navigator_yaml_amr1 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr1_bt_navigator.yaml')
-    planner_yaml_amr1 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr1_planner_server.yaml')
-    behavior_yaml_amr1 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr1_behavior.yaml')
-    amr1_config = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr1_amcl_config.yaml')
-    rviz_config_dir1 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'rviz', 'amr1_navigation2.rviz')
+    nav_path = get_package_share_directory('factory_amr_navigation')
 
-    controller_yaml_amr2 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr2_controller.yaml')
-    bt_navigator_yaml_amr2 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr2_bt_navigator.yaml')
-    planner_yaml_amr2 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr2_planner_server.yaml')
-    behavior_yaml_amr2 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr2_behavior.yaml')
-    amr2_config = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr2_amcl_config.yaml')
-    rviz_config_dir2 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'rviz', 'amr2_navigation2.rviz')
+    controller_yaml_amr1 = os.path.join(nav_path, 'param', 'amr1_controller.yaml')
+    bt_navigator_yaml_amr1 = os.path.join(nav_path, 'param', 'amr1_bt_navigator.yaml')
+    planner_yaml_amr1 = os.path.join(nav_path, 'param', 'amr1_planner_server.yaml')
+    behavior_yaml_amr1 = os.path.join(nav_path, 'param', 'amr1_behavior.yaml')
+    amr1_config = os.path.join(nav_path, 'param', 'amr1_amcl_config.yaml')
+    rviz_config_dir1 = os.path.join(nav_path, 'rviz', 'amr1_navigation2.rviz')
 
-    controller_yaml_amr3 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr3_controller.yaml')
-    bt_navigator_yaml_amr3 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr3_bt_navigator.yaml')
-    planner_yaml_amr3 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr3_planner_server.yaml')
-    behavior_yaml_amr3 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr3_behavior.yaml')
-    amr3_config = os.path.join(get_package_share_directory('factory_amr_navigation'), 'param', 'amr3_amcl_config.yaml')
-    rviz_config_dir3 = os.path.join(get_package_share_directory('factory_amr_navigation'), 'rviz', 'amr3_navigation2.rviz')
+    controller_yaml_amr2 = os.path.join(nav_path, 'param', 'amr2_controller.yaml')
+    bt_navigator_yaml_amr2 = os.path.join(nav_path, 'param', 'amr2_bt_navigator.yaml')
+    planner_yaml_amr2 = os.path.join(nav_path, 'param', 'amr2_planner_server.yaml')
+    behavior_yaml_amr2 = os.path.join(nav_path, 'param', 'amr2_behavior.yaml')
+    amr2_config = os.path.join(nav_path, 'param', 'amr2_amcl_config.yaml')
+    rviz_config_dir2 = os.path.join(nav_path, 'rviz', 'amr2_navigation2.rviz')
 
-    map_file = os.path.join(get_package_share_directory('factory_amr_navigation'), 'map', 'factory_map_saved.yaml')   
+    controller_yaml_amr3 = os.path.join(nav_path, 'param', 'amr3_controller.yaml')
+    bt_navigator_yaml_amr3 = os.path.join(nav_path, 'param', 'amr3_bt_navigator.yaml')
+    planner_yaml_amr3 = os.path.join(nav_path, 'param', 'amr3_planner_server.yaml')
+    behavior_yaml_amr3 = os.path.join(nav_path, 'param', 'amr3_behavior.yaml')
+    amr3_config = os.path.join(nav_path, 'param', 'amr3_amcl_config.yaml')
+    rviz_config_dir3 = os.path.join(nav_path, 'rviz', 'amr3_navigation2.rviz')
+
+    map_file = os.path.join(nav_path, 'map', 'factory_map_saved.yaml')   
     
-    return LaunchDescription([     
+    return LaunchDescription([   
+
+        # Static transform publishers for map to odom
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_publisher_map_odom_amr1',
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'factory_amr1/odom']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_publisher_map_odom_amr2',
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'factory_amr2/odom']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_publisher_map_odom_amr3',
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'factory_amr3/odom']
+        ),  
 
         Node(
             package='nav2_map_server',

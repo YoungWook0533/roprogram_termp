@@ -74,14 +74,6 @@ def generate_launch_description():
         output='screen'
     )
 
-    amr1_diff_drive_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        namespace='factory_amr1',
-        arguments=['factory_amr1_diff_drive_controller', '--controller-manager', '/factory_amr1/controller_manager'],
-        output='screen'
-    )
-
     amr1_luggage_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -101,13 +93,6 @@ def generate_launch_description():
         event_handler=OnProcessExit(
             target_action=amr1_joint_state_broadcaster_spawner,
             on_exit=[amr1_luggage_controller_spawner]
-        )
-    )
-
-    amr1_delay_diff_controller_spawner_after_luggage_controller_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=amr1_luggage_controller_spawner,
-            on_exit=[amr1_diff_drive_controller_spawner]
         )
     )
 
@@ -157,14 +142,6 @@ def generate_launch_description():
         output='screen'
     )
 
-    amr2_diff_drive_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        namespace='factory_amr2',
-        arguments=['factory_amr2_diff_drive_controller', '--controller-manager', '/factory_amr2/controller_manager'],
-        output='screen'
-    )
-
     amr2_luggage_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -187,24 +164,16 @@ def generate_launch_description():
         )
     )
 
-    amr2_delay_diff_controller_spawner_after_luggage_controller_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=amr2_luggage_controller_spawner,
-            on_exit=[amr2_diff_drive_controller_spawner]
-        )
-    )
-
     # Ensuring that AMR2 launches only after AMR1 is fully ready
     amr2_event_handler = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=amr1_diff_drive_controller_spawner,
+            target_action=amr1_luggage_controller_spawner,
             on_exit=[
                 amr2_robot_state_publisher_node,
                 amr2_control_node,
                 amr2_urdf_spawn_node,
                 amr2_delay_joint_state_broadcaster_spawner_after_spawn_entity,
                 amr2_delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner,
-                amr2_delay_diff_controller_spawner_after_luggage_controller_spawner
             ]
         )
     )
@@ -255,14 +224,6 @@ def generate_launch_description():
         output='screen'
     )
 
-    amr3_diff_drive_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        namespace='factory_amr3',
-        arguments=['factory_amr3_diff_drive_controller', '--controller-manager', '/factory_amr3/controller_manager'],
-        output='screen'
-    )
-
     amr3_luggage_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -285,38 +246,43 @@ def generate_launch_description():
         )
     )
 
-    amr3_delay_diff_controller_spawner_after_luggage_controller_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=amr3_luggage_controller_spawner,
-            on_exit=[amr3_diff_drive_controller_spawner]
-        )
-    )
-
     # Ensuring that AMR3 launches only after AMR2 and AMR1 is fully ready
     amr3_event_handler = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=amr2_diff_drive_controller_spawner,
+            target_action=amr2_luggage_controller_spawner,
             on_exit=[
                 amr3_robot_state_publisher_node,
                 amr3_control_node,
                 amr3_urdf_spawn_node,
                 amr3_delay_joint_state_broadcaster_spawner_after_spawn_entity,
                 amr3_delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner,
-                amr3_delay_diff_controller_spawner_after_luggage_controller_spawner
             ]
         )
     )
+    # DECLARE Gazebo WORLD file:
+    irb120_ros2_gazebo = os.path.join(
+        get_package_share_directory('irb120_ros2_gazebo'),
+        'worlds',
+        'irb120.world'
+    )
+    # DECLARE Gazebo LAUNCH file:
+    gazebo = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
+        launch_arguments={'world': irb120_ros2_gazebo}.items(),
+    )
 
     return LaunchDescription([
+        gazebo,
         amr1_robot_state_publisher_node,
         amr1_control_node,
         amr1_urdf_spawn_node,
         amr1_delay_joint_state_broadcaster_spawner_after_spawn_entity,
         amr1_delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner,
-        amr1_delay_diff_controller_spawner_after_luggage_controller_spawner,
         amr2_event_handler,
         amr3_event_handler
     ])
 
 # ros2 topic pub --once /factory_amr3/factory_amr3_luggage_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "{joint_names: ['luggage_joint'], points: [{positions: [0.3], time_from_start: {sec: 3, nanosec: 0}}]}"
 # ros2 topic pub --once /factory_amr2/factory_amr2_luggage_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "{joint_names: ['luggage_joint'], points: [{positions: [0.3], time_from_start: {sec: 3, nanosec: 0}}]}"
+# ros2 topic pub --once /factory_amr1/factory_amr1_luggage_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "{joint_names: ['luggage_joint'], points: [{positions: [0.3], time_from_start: {sec: 3, nanosec: 0}}]}"

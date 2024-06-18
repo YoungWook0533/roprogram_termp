@@ -10,132 +10,190 @@ import xacro
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    share_dir = get_package_share_directory('factory_amr_description')
-    xacro_file = os.path.join(share_dir, 'urdf', 'robot_urdf_3.xacro')
-    robot_description_config = xacro.process_file(xacro_file)
-    robot_urdf = robot_description_config.toxml()
-    robot_controllers = os.path.join(share_dir, 'config', 'controller_factory_amr3.yaml')
 
-    robot_state_publisher_node = Node(
+    amr2_share_dir = get_package_share_directory('factory_amr_description')
+    amr2_xacro_file = os.path.join(amr2_share_dir, 'urdf', 'robot_urdf_2.xacro')
+    amr2_robot_description_config = xacro.process_file(amr2_xacro_file)
+    amr2_robot_urdf = amr2_robot_description_config.toxml()
+    amr2_robot_controllers = os.path.join(amr2_share_dir, 'config', 'controller_factory_amr2.yaml')
+    
+    amr3_share_dir = get_package_share_directory('factory_amr_description')
+    amr3_xacro_file = os.path.join(amr3_share_dir, 'urdf', 'robot_urdf_3.xacro')
+    amr3_robot_description_config = xacro.process_file(amr3_xacro_file)
+    amr3_robot_urdf = amr3_robot_description_config.toxml()
+    amr3_robot_controllers = os.path.join(amr3_share_dir, 'config', 'controller_factory_amr3.yaml')
+
+    amr2_robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
+        namespace='factory_amr2',
         name='robot_state_publisher',
-        parameters=[
-            {'robot_description': robot_urdf, 'use_sim_time': True}
-        ]
+        parameters=[{'frame_prefix': 'factory_amr2/',
+                    'use_sim_time': True,
+                    'robot_description': amr2_robot_urdf}],
+        remappings=[('/scan', '/factory_amr2/scan')]
     )
 
-    control_node = Node(
+    amr2_control_node = Node(
         package='controller_manager',
         executable='ros2_control_node',
-        parameters=[robot_controllers],
+        namespace='factory_amr2',
+        parameters=[amr2_robot_controllers],
         output='both',
     )
 
+    amr2_urdf_spawn_node = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        namespace='factory_amr2',
+        arguments=[
+            '-entity', 'factory_amr2',
+            '-topic', 'robot_description',
+            '-x', '-0.2',
+            '-y', '-0.8',
+            '-z', '0.0',
+            '-R', '0.0',
+            '-P', '0.0',   
+            '-Y', '4.71',  
+            '-robot_namespace', 'factory_amr2',
+        ],
+        output='screen'
+    )
+
+    amr2_joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        namespace='factory_amr2',
+        arguments=['factory_amr2_joint_state_broadcaster', '--controller-manager', '/factory_amr2/controller_manager'],
+        output='screen'
+    )
+
+    amr2_luggage_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        namespace='factory_amr2',
+        arguments=['factory_amr2_luggage_controller', '--controller-manager', '/factory_amr2/controller_manager'],
+        output='screen'
+    )
+
+    amr2_delay_joint_state_broadcaster_spawner_after_spawn_entity = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=amr2_urdf_spawn_node,
+            on_exit=[amr2_joint_state_broadcaster_spawner]
+        )
+    )
+
+    amr2_delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=amr2_joint_state_broadcaster_spawner,
+            on_exit=[amr2_luggage_controller_spawner]
+        )
+    )
+
+    amr3_robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='factory_amr3',
+        name='robot_state_publisher',
+        parameters=[{'frame_prefix': 'factory_amr3/',
+                    'use_sim_time': True,
+                    'robot_description': amr3_robot_urdf}],
+        remappings=[('/scan', '/factory_amr3/scan')]
+    )
+
+    amr3_control_node = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        namespace='factory_amr3',
+        parameters=[amr3_robot_controllers],
+        output='both',
+    )
+
+    amr3_urdf_spawn_node = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        namespace='factory_amr3',
+        arguments=[
+            '-entity', 'factory_amr3',
+            '-topic', 'robot_description',
+            '-x', '1.1',
+            '-y', '-0.2',
+            '-z', '0.0',
+            '-R', '0.0',   
+            '-P', '0.0',   
+            '-Y', '0.0',  
+            '-robot_namespace', 'factory_amr3',
+        ],
+        output='screen'
+    )
+
+    amr3_joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        namespace='factory_amr3',
+        arguments=['factory_amr3_joint_state_broadcaster', '--controller-manager', '/factory_amr3/controller_manager'],
+        output='screen'
+    )
+
+    amr3_luggage_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        namespace='factory_amr3',
+        arguments=['factory_amr3_luggage_controller', '--controller-manager', '/factory_amr3/controller_manager'],
+        output='screen'
+    )
+
+    # DECLARE Gazebo WORLD file:
     irb120_ros2_gazebo = os.path.join(
         get_package_share_directory('irb120_ros2_gazebo'),
         'worlds',
         'irb120.world'
     )
-
-    gazebo_server = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('gazebo_ros'),
-                'launch',
-                'gzserver.launch.py'
-            ])
-        ]),
-        launch_arguments={
-            'world': irb120_ros2_gazebo,
-        }.items()
+    # DECLARE Gazebo LAUNCH file:
+    gazebo = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
+        launch_arguments={'world': irb120_ros2_gazebo}.items(),
     )
 
-    gazebo_client = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('gazebo_ros'),
-                'launch',
-                'gzclient.launch.py'
-            ])
-        ])
-    )
-
-    urdf_spawn_node = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
-        arguments=[
-            '-entity', 'factory_amr3',
-            '-topic', 'robot_description',
-            '-x', '0.5',
-            '-y', '0.9',
-            '-z', '0.0',
-            '-R', '0.0',
-            '-P', '0.0',
-            '-Y', '1.57'
-        ],
-        output='screen'
-    )
-
-    joint_state_broadcaster_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['amr3_joint_state_broadcaster', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-
-    diff_drive_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['factory_amr3', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-
-    luggage_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['amr3_luggage_controller', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-
-    delay_joint_state_broadcaster_spawner_after_spawn_entity = RegisterEventHandler(
+    amr3_delay_joint_state_broadcaster_spawner_after_spawn_entity = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=urdf_spawn_node,
-            on_exit=[joint_state_broadcaster_spawner]
+            target_action=amr3_urdf_spawn_node,
+            on_exit=[amr3_joint_state_broadcaster_spawner]
         )
     )
 
-    delay_joint_state_broadcaster_after_control_node = RegisterEventHandler(
+    amr3_delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=control_node,
-            on_exit=[joint_state_broadcaster_spawner]
+            target_action=amr3_joint_state_broadcaster_spawner,
+            on_exit=[amr3_luggage_controller_spawner]
         )
     )
 
-    delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+    amr3_event_handler = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[luggage_controller_spawner]
-        )
-    )
-
-    delay_diff_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[diff_drive_controller_spawner]
+            target_action=amr2_luggage_controller_spawner,
+            on_exit=[
+                amr3_robot_state_publisher_node,
+                amr3_control_node,
+                amr3_urdf_spawn_node,
+                amr3_delay_joint_state_broadcaster_spawner_after_spawn_entity,
+                amr3_delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner,
+            ]
         )
     )
 
     return LaunchDescription([
-        robot_state_publisher_node,
-        control_node,
-        gazebo_server,
-        gazebo_client,
-        urdf_spawn_node,
-        delay_joint_state_broadcaster_spawner_after_spawn_entity,
-        delay_joint_state_broadcaster_after_control_node,
-        delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_diff_controller_spawner_after_joint_state_broadcaster_spawner,
+        gazebo,
+
+
+
+        amr3_robot_state_publisher_node,
+        amr3_control_node,
+        amr3_urdf_spawn_node,
+        amr3_delay_joint_state_broadcaster_spawner_after_spawn_entity,
+        amr3_delay_luggage_controller_spawner_after_joint_state_broadcaster_spawner,
+        #amr3_event_handler,
     ])
 
 #ros2 topic pub --once /amr_luggage_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "{joint_names: ['luggage_joint'], points: [{positions: [1.0], time_from_start: {sec: 3, nanosec: 0}}]}"

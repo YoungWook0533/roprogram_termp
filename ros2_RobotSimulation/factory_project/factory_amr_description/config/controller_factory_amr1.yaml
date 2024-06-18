@@ -9,9 +9,6 @@ factory_amr1/controller_manager:
     factory_amr1_luggage_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    factory_amr1_diff_drive_controller:
-      type: "diff_drive_controller/DiffDriveController"
-
 factory_amr1/factory_amr1_luggage_controller:
   ros__parameters: 
     joints:
@@ -37,14 +34,3 @@ factory_amr1/factory_amr1_luggage_controller:
         trajectory: 0.1
         goal: 0.1
       
-factory_amr1/factory_amr1_diff_drive_controller:
-  ros__parameters:
-    left_wheel_names: ["left_wheel_joint"]
-    right_wheel_names: ["right_wheel_joint"]
-
-    wheel_separation: 0.62
-    wheel_radius: 0.5
-
-    publish_rate: 50.0
-    odom_frame_id: "odom"
-    base_frame_id: "base_link"
