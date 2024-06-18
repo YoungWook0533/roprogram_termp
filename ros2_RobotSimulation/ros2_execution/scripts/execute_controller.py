@@ -20,6 +20,7 @@ class ExecuteProgram(Node):
         while not self.counter_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting again...')
         self.get_logger().info("Node has been started. Waiting for object messages...")
+        self.counter = 0
 
     def execute_command(self, program_name):
         command = [
@@ -34,18 +35,15 @@ class ExecuteProgram(Node):
 
     def listener_callback(self, msg):
         object_name = msg.data
-        if object_name == 'cracker box':
-            self.get_logger().info('Received cracker box')
+        if object_name == 'snack_box':
+            self.get_logger().info('Received snack_box')
             self.execute_command("toPos1")
-            self.send_counter_request()
-        elif object_name == 'sugar box':
-            self.get_logger().info('Received sugar box')
+        elif object_name == 'sugar_box':
+            self.get_logger().info('Received sugar_box')
             self.execute_command("toPos2")
-            self.send_counter_request()
-        elif object_name == 'spam can':
-            self.get_logger().info('Received spam can')
+        elif object_name == 'spam_can':
+            self.get_logger().info('Received spam_can')
             self.execute_command("toPos3")
-            self.send_counter_request()
         else:
             self.get_logger().info(f"Received unknown object: {object_name}")
 
@@ -59,9 +57,16 @@ class ExecuteProgram(Node):
             response = future.result()
             self.get_logger().info(f"Counter incremented, new value: {response.new_value}")
             print(f"Counter incremented, new value: {response.new_value}")
+            self.counter = response.new_value
+            if self.counter >= 3:
+                self.execute_additional_commands()
         except Exception as e:
             self.get_logger().error(f"Service call failed: {str(e)}")
             print(f"Service call failed: {str(e)}")
+
+    def execute_additional_commands(self):
+        self.get_logger().info("Counter reached 3. Executing additional commands...")
+        subprocess.run(["ros2", "launch", "factory_amr_navigation", "nav2_custom.launch.py"])
 
 def main(args=None):
     rclpy.init(args=args)

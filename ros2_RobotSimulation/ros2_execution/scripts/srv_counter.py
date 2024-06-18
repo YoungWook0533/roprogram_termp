@@ -3,6 +3,7 @@
 import rclpy
 from rclpy.node import Node
 from custom_interfaces.srv import Cnt
+import subprocess
 
 class CounterServer(Node):
     def __init__(self):
@@ -15,7 +16,17 @@ class CounterServer(Node):
         self.counter += 1  # Increment the counter
         self.get_logger().info(f'Counter incremented to {self.counter}')
         response.new_value = self.counter  # Set the response new_value to the new counter value
+
+        # If counter reaches 3, execute the command
+        if self.counter == 3:
+            self.execute_command()
+
         return response
+
+    def execute_command(self):
+        command = "gnome-terminal -- bash -c 'source /opt/ros/humble/setup.bash; ros2 run ros2_execution send_goal.py; exec bash'"
+        subprocess.Popen(command, shell=True)
+        self.get_logger().info("Executed command: ros2 launch ros2_execution send_goal.py")
 
 def main(args=None):
     rclpy.init(args=args)

@@ -2,84 +2,144 @@
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
-from custom_interfaces.srv import Cnt
-import subprocess
-import os
+from geometry_msgs.msg import PoseStamped
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from nav2_msgs.action import NavigateToPose
+from rclpy.action import ActionClient
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from lifecycle_msgs.srv import ChangeState
+from lifecycle_msgs.msg import Transition
+import math
 
-class ExecuteProgram(Node):
+class GoalPublisher(Node):
+
     def __init__(self):
-        super().__init__('execute_program_node')
-        self.subscription = self.create_subscription(
-            String,
-            'detected_object',
-            self.listener_callback,
-            10
+        super().__init__('goal_publisher')
+
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10
         )
-        self.subscription  # prevent unused variable warning
-        self.counter_client = self.create_client(Cnt, 'increment_counter')
-        while not self.counter_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting again...')
-        self.get_logger().info("Node has been started. Waiting for object messages...")
-        self.counter = 0
 
-    def execute_command(self, program_name):
-        command = [
-            "ros2", "run", "ros2_execution", "ros2_execution.py",
-            "--ros-args", "-p", f"PROGRAM_FILENAME:={program_name}",
-            "-p", "ROBOT_MODEL:=irb120",
-            "-p", "EE_MODEL:=schunk"
-        ]
-        subprocess.run(command)
-        self.get_logger().info(f"Executed command for {program_name}")
-        self.send_counter_request()
+        self.publisher_amr1 = self.create_publisher(PoseStamped, 'factory_amr1/goal_update', qos_profile)
+        self.publisher_amr2 = self.create_publisher(PoseStamped, 'factory_amr2/goal_update', qos_profile)
+        self.publisher_amr3 = self.create_publisher(PoseStamped, 'factory_amr3/goal_update', qos_profile)
 
-    def listener_callback(self, msg):
-        object_name = msg.data
-        if object_name == 'cracker box':
-            self.get_logger().info('Received cracker box')
-            self.execute_command("toPos1")
-        elif object_name == 'sugar box':
-            self.get_logger().info('Received sugar box')
-            self.execute_command("toPos2")
-        elif object_name == 'spam can':
-            self.get_logger().info('Received spam can')
-            self.execute_command("toPos3")
-        else:
-            self.get_logger().info(f"Received unknown object: {object_name}")
+        self.amr1_client = ActionClient(self, NavigateToPose, 'factory_amr1/navigate_to_pose')
+        self.amr2_client = ActionClient(self, NavigateToPose, 'factory_amr2/navigate_to_pose')
+        self.amr3_client = ActionClient(self, NavigateToPose, 'factory_amr3/navigate_to_pose')
 
-    def send_counter_request(self):
-        req = Cnt.Request()
-        self.future = self.counter_client.call_async(req)
-        self.future.add_done_callback(self.counter_response_callback)
+        self.luggage_publisher_amr1 = self.create_publisher(JointTrajectory, 'factory_amr1/factory_amr1_luggage_controller/joint_trajectory', 10)
+        self.luggage_publisher_amr2 = self.create_publisher(JointTrajectory, 'factory_amr2/factory_amr2_luggage_controller/joint_trajectory', 10)
+        self.luggage_publisher_amr3 = self.create_publisher(JointTrajectory, 'factory_amr3/factory_amr3_luggage_controller/joint_trajectory', 10)
 
-    def counter_response_callback(self, future):
+        self.amr1_goal_active = True
+        self.amr2_goal_active = True
+        self.amr3_goal_active = True
+
+        self.timer = self.create_timer(3.0, self.timer_callback)
+
+        # Create individual timers for luggage opening
+        self.create_timer(90.0, self.luggage_timer_callback_factory_amr2)
+        self.create_timer(120.0, self.luggage_timer_callback_factory_amr3)
+        self.create_timer(190.0, self.luggage_timer_callback_factory_amr1)
+
+    def timer_callback(self):
+        if self.amr1_goal_active:
+            self.send_goal('factory_amr1', -2.0, 4.5, 0.0, 1.57, self.amr1_client)
+        if self.amr2_goal_active:
+            self.send_goal('factory_amr2', -2.5, -1.5, 0.0, 0.0, self.amr2_client)
+        if self.amr3_goal_active:
+            self.send_goal('factory_amr3', 2.0, 5.0, 0.0, -1.57, self.amr3_client)
+
+    def send_goal(self, namespace, x, y, z, w, client):
+        goal_msg = PoseStamped()
+        goal_msg.header.frame_id = 'map'
+        goal_msg.pose.position.x = x
+        goal_msg.pose.position.y = y
+        goal_msg.pose.orientation.z = z
+        goal_msg.pose.orientation.w = w
+
+        goal_action = NavigateToPose.Goal()
+        goal_action.pose = goal_msg
+
+        client.wait_for_server()
+        self.send_goal_future = client.send_goal_async(goal_action)
+        self.send_goal_future.add_done_callback(lambda future: self.goal_response_callback(future, namespace, x, y))
+
+    def goal_response_callback(self, future, namespace, goal_x, goal_y):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected')
+            return
+
+        self.get_logger().info('Goal accepted')
+
+    def luggage_timer_callback_factory_amr1(self):
+        self.publish_luggage_joint('factory_amr1')
+        self.deactivate_lifecycle_nodes('factory_amr1')
+        self.amr1_goal_active = False
+
+    def luggage_timer_callback_factory_amr2(self):
+        self.publish_luggage_joint('factory_amr2')
+        self.deactivate_lifecycle_nodes('factory_amr2')
+        self.amr2_goal_active = False
+
+    def luggage_timer_callback_factory_amr3(self):
+        self.publish_luggage_joint('factory_amr3')
+        self.deactivate_lifecycle_nodes('factory_amr3')
+        self.amr3_goal_active = False
+
+    def publish_luggage_joint(self, namespace):
+        joint_trajectory = JointTrajectory()
+        joint_trajectory.joint_names = ['luggage_joint']
+        point = JointTrajectoryPoint()
+        point.positions = [0.3]
+        point.time_from_start.sec = 3
+        joint_trajectory.points = [point]
+
+        if namespace == 'factory_amr1':
+            self.luggage_publisher_amr1.publish(joint_trajectory)
+            self.get_logger().info(f'{namespace} luggage joint opened')
+        elif namespace == 'factory_amr2':
+            self.luggage_publisher_amr2.publish(joint_trajectory)
+            self.get_logger().info(f'{namespace} luggage joint opened')
+        elif namespace == 'factory_amr3':
+            self.luggage_publisher_amr3.publish(joint_trajectory)
+            self.get_logger().info(f'{namespace} luggage joint opened')
+
+    def deactivate_lifecycle_nodes(self, namespace):
+        node_names = ['planner_server', 'controller_server', 'behavior_server', 'bt_navigator']
+        for node_name in node_names:
+            service_name = f'/{namespace}/{node_name}/change_state'
+            client = self.create_client(ChangeState, service_name)
+            while not client.wait_for_service(timeout_sec=1.0):
+                self.get_logger().info(f'Waiting for service {service_name} to be available...')
+            req = ChangeState.Request()
+            req.transition.id = Transition.TRANSITION_DEACTIVATE
+            future = client.call_async(req)
+            future.add_done_callback(lambda future: self.deactivate_callback(future, node_name, namespace))
+
+    def deactivate_callback(self, future, node_name, namespace):
         try:
             response = future.result()
-            self.get_logger().info(f"Counter incremented, new value: {response.new_value}")
-            print(f"Counter incremented, new value: {response.new_value}")
-            self.counter = response.new_value
-            if self.counter >= 6:
-                self.execute_additional_commands()
+            if response.success:
+                self.get_logger().info(f'{namespace} {node_name} successfully deactivated')
+            else:
+                self.get_logger().error(f'Failed to deactivate {namespace} {node_name}')
         except Exception as e:
-            self.get_logger().error(f"Service call failed: {str(e)}")
-            print(f"Service call failed: {str(e)}")
-
-    def execute_additional_commands(self):
-        self.get_logger().info("Counter reached 6. Executing additional commands...")
-        if os.name == 'posix':
-            subprocess.Popen(['gnome-terminal', '--', 'bash', '-c', 'ros2 launch factory_amr_navigation nav2_custom.launch.py; exec bash'])
-            subprocess.Popen(['gnome-terminal', '--', 'bash', '-c', 'ros2 run ros2_execution send_goal.py; exec bash'])
-        elif os.name == 'nt':
-            subprocess.Popen(['start', 'cmd', '/k', 'ros2 launch factory_amr_navigation nav2_custom.launch.py'], shell=True)
-            subprocess.Popen(['start', 'cmd', '/k', 'ros2 run ros2_execution send_goal.py'], shell=True)
-        else:
-            self.get_logger().error("Unsupported OS")
+            self.get_logger().error(f'Service call failed for {namespace} {node_name}: {e}')
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ExecuteProgram()
-    rclpy.spin(node)
+    node = GoalPublisher()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
     node.destroy_node()
     rclpy.shutdown()
 
