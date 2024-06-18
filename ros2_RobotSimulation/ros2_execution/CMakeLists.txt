@@ -20,6 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(custom_interfaces REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -47,6 +48,7 @@ install(PROGRAMS
   scripts/ros2_execution.py
   scripts/execute_controller.py
   scripts/send_goal.py
+  scripts/srv_counter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
