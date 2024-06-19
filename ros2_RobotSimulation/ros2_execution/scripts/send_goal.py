@@ -42,8 +42,8 @@ class GoalPublisher(Node):
 
         # Create individual timers for luggage opening
         self.create_timer(90.0, self.luggage_timer_callback_factory_amr2)
-        self.create_timer(120.0, self.luggage_timer_callback_factory_amr3)
-        self.create_timer(190.0, self.luggage_timer_callback_factory_amr1)
+        self.create_timer(110.0, self.luggage_timer_callback_factory_amr3)
+        self.create_timer(120.0, self.luggage_timer_callback_factory_amr1)
 
     def timer_callback(self):
         if self.amr1_goal_active:

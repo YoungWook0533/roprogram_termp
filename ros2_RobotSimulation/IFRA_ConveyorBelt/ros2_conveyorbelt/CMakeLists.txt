@@ -39,6 +39,7 @@ find_package(gazebo_ros REQUIRED)
 find_package(gazebo_dev REQUIRED)
 find_package(gazebo_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
 
 find_package(conveyorbelt_msgs REQUIRED)
 
@@ -74,11 +75,15 @@ install(
 install(
   DIRECTORY 
     python
+    launch
   DESTINATION 
     share/${PROJECT_NAME}
 )
 install(PROGRAMS
   python/SpawnObject.py
+  python/beltcont_call.py
+  python/beltcont_srv.py
+  launch/beltcont_launch.py
   DESTINATION lib/${PROJECT_NAME} 
 )
 

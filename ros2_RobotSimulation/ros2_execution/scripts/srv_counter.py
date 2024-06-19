@@ -17,8 +17,8 @@ class CounterServer(Node):
         self.get_logger().info(f'Counter incremented to {self.counter}')
         response.new_value = self.counter  # Set the response new_value to the new counter value
 
-        # If counter reaches 3, execute the command
-        if self.counter == 3:
+        # If counter reaches 2, execute the command
+        if self.counter == 2:
             self.execute_command()
 
         return response

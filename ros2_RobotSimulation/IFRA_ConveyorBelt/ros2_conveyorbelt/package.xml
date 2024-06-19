@@ -20,6 +20,8 @@
   <depend>gazebo_msgs</depend>
   <depend>rclcpp</depend>
   
+  <build_depend>rclpy</build_depend>
+  <exec_depend>rclpy</exec_depend>
   <build_depend>conveyorbelt_msgs</build_depend>
 
   <export>

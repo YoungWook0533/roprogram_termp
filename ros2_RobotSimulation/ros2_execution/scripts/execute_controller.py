@@ -11,7 +11,7 @@ class ExecuteProgram(Node):
         super().__init__('execute_program_node')
         self.subscription = self.create_subscription(
             String,
-            'detected_object',
+            'yolo/detection_result',
             self.listener_callback,
             10
         )
@@ -58,14 +58,14 @@ class ExecuteProgram(Node):
             self.get_logger().info(f"Counter incremented, new value: {response.new_value}")
             print(f"Counter incremented, new value: {response.new_value}")
             self.counter = response.new_value
-            if self.counter >= 3:
+            if self.counter >= 2:
                 self.execute_additional_commands()
         except Exception as e:
             self.get_logger().error(f"Service call failed: {str(e)}")
             print(f"Service call failed: {str(e)}")
 
     def execute_additional_commands(self):
-        self.get_logger().info("Counter reached 3. Executing additional commands...")
+        self.get_logger().info("Counter reached 2. Executing additional commands...")
         subprocess.run(["ros2", "launch", "factory_amr_navigation", "nav2_custom.launch.py"])
 
 def main(args=None):
